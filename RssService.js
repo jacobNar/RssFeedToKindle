@@ -15,6 +15,7 @@ class RssService {
         for (const feedConfig of feedConfigs) {
             const url = typeof feedConfig === 'string' ? feedConfig : feedConfig.url;
             const site = typeof feedConfig === 'string' ? null : feedConfig.site;
+            const downloadType = typeof feedConfig === 'string' ? null : feedConfig.downloadType;
 
             try {
                 const feed = await this.parser.parseURL(url);
@@ -29,7 +30,8 @@ class RssService {
                         contentSnippet: item.contentSnippet,
                         content: item.content,
                         feedTitle: feed.title,
-                        site: site
+                        site: site,
+                        downloadType: downloadType
                     });
                 });
             } catch (error) {
@@ -39,7 +41,15 @@ class RssService {
 
         allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-        this.articles = allArticles;
+        // Deduplicate cross-listed articles by ID
+        const uniqueArticlesMap = new Map();
+        for (const article of allArticles) {
+            if (!uniqueArticlesMap.has(article.id)) {
+                uniqueArticlesMap.set(article.id, article);
+            }
+        }
+
+        this.articles = Array.from(uniqueArticlesMap.values());
         this.lastFetch = new Date();
         return this.articles;
     }

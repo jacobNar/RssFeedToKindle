@@ -119,10 +119,10 @@ class EmailService {
         }
     }
 
-    async sendHTML(toEmails, htmlFiles, title) {
-        Logger.info(`Sending ${htmlFiles.length} HTML files to ${toEmails.join(', ')}`);
+    async sendFiles(toEmails, files, title) {
+        Logger.info(`Sending ${files.length} files to ${toEmails.join(', ')}`);
 
-        const attachments = htmlFiles.map(file => ({
+        const attachments = files.map(file => ({
             filename: file.filename,
             content: file.content
         }));
@@ -131,13 +131,13 @@ class EmailService {
             from: `"RSS to Kindle" <${this.fromEmail}>`,
             to: toEmails.join(', '),
             subject: `Send to Kindle: ${title}`,
-            text: `Attached are ${htmlFiles.length} articles from your RSS feeds.`,
+            text: `Attached are ${files.length} articles from your RSS feeds.`,
             attachments: attachments
         };
 
         try {
             const mailResult = await this.transporter.sendMail(mailOptions);
-            Logger.info(`Successfully sent ${htmlFiles.length} HTML files`);
+            Logger.info(`Successfully sent ${files.length} files`);
 
             // Archive to Sent folder (non-blocking)
             if (process.env.IMAP_USER) {

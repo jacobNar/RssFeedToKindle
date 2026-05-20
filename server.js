@@ -7,6 +7,7 @@ const Logger = require('./Logger');
 const RssService = require('./RssService');
 const EpubService = require('./EpubService');
 const HTMLService = require('./HTMLService');
+const PdfService = require('./PdfService');
 const EmailService = require('./EmailService');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const rssService = new RssService();
 const epubService = new EpubService();
 const htmlService = new HTMLService();
+const pdfService = new PdfService();
 const emailService = new EmailService();
 
 let config = {};
@@ -126,15 +128,28 @@ app.post('/api/send', async (req, res) => {
             return res.status(400).json({ error: 'No Kindle emails configured in .env' });
         }
 
-        // Download HTML files for selected articles
-        const htmlFiles = await htmlService.downloadArticles(selectedArticles);
+        const filesToSend = [];
 
-        if (htmlFiles.length === 0) {
+        // Separate articles by downloadType
+        const pdfArticles = selectedArticles.filter(a => a.downloadType === 'pdf');
+        const htmlArticles = selectedArticles.filter(a => a.downloadType !== 'pdf');
+
+        if (pdfArticles.length > 0) {
+            const pdfFiles = await pdfService.downloadArticles(pdfArticles);
+            filesToSend.push(...pdfFiles);
+        }
+
+        if (htmlArticles.length > 0) {
+            const htmlFiles = await htmlService.downloadArticles(htmlArticles);
+            filesToSend.push(...htmlFiles);
+        }
+
+        if (filesToSend.length === 0) {
             return res.status(500).json({ error: 'Failed to download any articles' });
         }
 
-        // Send HTML files via email
-        await emailService.sendHTML(toEmails, htmlFiles, `Digest ${new Date().toLocaleDateString()}`);
+        // Send files via email
+        await emailService.sendFiles(toEmails, filesToSend, `Digest ${new Date().toLocaleDateString()}`);
 
         res.json({ message: 'Successfully sent to Kindle!' });
     } catch (error) {

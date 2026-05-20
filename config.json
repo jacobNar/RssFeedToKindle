@@ -3,12 +3,12 @@
         {
             "url": "https://rss.arxiv.org/rss/cs.AI",
             "site": "arxiv.org",
-            "downloadType": "html"
+            "downloadType": "pdf"
         },
         {
             "url": "https://rss.arxiv.org/rss/cs.CL",
             "site": "arxiv.org",
-            "downloadType": "html"
+            "downloadType": "pdf"
         }
     ]
 }
