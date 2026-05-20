@@ -1,0 +1,28 @@
+{
+  "name": "rssfeedtokindle",
+  "version": "1.0.0",
+  "description": "Simple app that let's you review RSS feeds, select which articles you want to read, and download them to your Kindle.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacobNar/RssFeedToKindle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacobNar/RssFeedToKindle/issues"
+  },
+  "homepage": "https://github.com/jacobNar/RssFeedToKindle#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "epub-gen-memory": "^1.1.2",
+    "express": "^5.2.1",
+    "imap": "^0.8.19",
+    "nodemailer": "^8.0.7",
+    "rss-parser": "^3.13.0"
+  }
+}
