@@ -130,7 +130,6 @@ app.post('/api/send', async (req, res) => {
 
         const filesToSend = [];
 
-        // Separate articles by downloadType
         const pdfArticles = selectedArticles.filter(a => a.downloadType === 'pdf');
         const htmlArticles = selectedArticles.filter(a => a.downloadType !== 'pdf');
 
@@ -141,17 +140,44 @@ app.post('/api/send', async (req, res) => {
 
         if (htmlArticles.length > 0) {
             const htmlFiles = await htmlService.downloadArticles(htmlArticles);
-            filesToSend.push(...htmlFiles);
+            for (const file of htmlFiles) {
+                const article = htmlArticles.find(a => a.title === file.title);
+                if (article) {
+                    const epubBuffer = await epubService.generateFromHtml(article, file.content.toString('utf8'));
+                    const safeTitle = file.title.replace(/[\\/:*?"<>|]/g, '').trim();
+                    filesToSend.push({
+                        title: file.title,
+                        filename: `${safeTitle}.epub`,
+                        content: epubBuffer
+                    });
+                }
+            }
         }
 
         if (filesToSend.length === 0) {
             return res.status(500).json({ error: 'Failed to download any articles' });
         }
 
-        // Send files via email
-        await emailService.sendFiles(toEmails, filesToSend, `Digest ${new Date().toLocaleDateString()}`);
+        const saveLocal = false;
+        if (saveLocal) {
+            const epubDir = path.join(__dirname, 'epub');
+            if (!fs.existsSync(epubDir)) {
+                fs.mkdirSync(epubDir, { recursive: true });
+            }
 
-        res.json({ message: 'Successfully sent to Kindle!' });
+            for (const file of filesToSend) {
+                if (file.filename.endsWith('.epub')) {
+                    fs.writeFileSync(path.join(epubDir, file.filename), file.content);
+                }
+            }
+        }
+
+        const sendEmail = process.env.SEND_EMAIL === 'true';
+        if (sendEmail) {
+            await emailService.sendFiles(toEmails, filesToSend, `Digest ${new Date().toLocaleDateString()}`);
+        }
+
+        res.json({ message: 'Successfully processed and saved EPUBs locally!' });
     } catch (error) {
         Logger.error('Error in /api/send', error);
         res.status(500).json({ error: 'Failed to process and send articles' });

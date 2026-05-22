@@ -3,12 +3,17 @@
         {
             "url": "https://rss.arxiv.org/rss/cs.AI",
             "site": "arxiv.org",
-            "downloadType": "pdf"
+            "downloadType": "html"
         },
         {
             "url": "https://rss.arxiv.org/rss/cs.CL",
             "site": "arxiv.org",
-            "downloadType": "pdf"
+            "downloadType": "html"
+        },
+        {
+            "url": "https://hnrss.org/frontpage",
+            "site": "news.ycombinator.com",
+            "downloadType": "html"
         }
     ]
 }

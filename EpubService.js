@@ -14,7 +14,7 @@ class EpubService {
         const content = articles.map(article => ({
             title: article.title,
             author: article.author || article.feedTitle || 'Unknown',
-            data: `<h2><a href="${article.link}">${article.title}</a></h2>` + (article.content || article.contentSnippet || '')
+            content: `<h2><a href="${article.link}">${article.title}</a></h2>` + (article.content || article.contentSnippet || '')
         }));
 
         try {
@@ -23,6 +23,28 @@ class EpubService {
             return buffer;
         } catch (error) {
             Logger.error('Failed to generate EPUB', error);
+            throw error;
+        }
+    }
+
+    async generateFromHtml(article, htmlContent) {
+        Logger.info(`Generating EPUB for article: ${article.title}`);
+        const options = {
+            title: article.title,
+            author: article.author || article.feedTitle || 'Unknown',
+            ignoreFailedDownloads: true
+        };
+        const content = [{
+            title: article.title,
+            author: article.author || article.feedTitle || 'Unknown',
+            content: htmlContent
+        }];
+        try {
+            const buffer = await Epub(options, content);
+            Logger.info('EPUB generated successfully');
+            return buffer;
+        } catch (error) {
+            Logger.error('Failed to generate EPUB from HTML', error);
             throw error;
         }
     }

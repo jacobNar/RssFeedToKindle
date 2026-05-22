@@ -88,6 +88,10 @@ class EmailService {
     }
 
     async sendEpub(toEmails, epubBuffer, title) {
+        if (process.env.SEND_EMAIL !== 'true') {
+            Logger.info('Email sending is disabled');
+            return;
+        }
         Logger.info(`Sending ${title}.epub to ${toEmails.join(', ')}`);
 
         const mailOptions = {
@@ -120,6 +124,10 @@ class EmailService {
     }
 
     async sendFiles(toEmails, files, title) {
+        if (process.env.SEND_EMAIL !== 'true') {
+            Logger.info('Email sending is disabled');
+            return;
+        }
         Logger.info(`Sending ${files.length} files to ${toEmails.join(', ')}`);
 
         const attachments = files.map(file => ({
