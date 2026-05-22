@@ -3,9 +3,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingEl = document.getElementById('loading');
     const errorEl = document.getElementById('error');
     const downloadBtn = document.getElementById('download-btn');
+    const searchInput = document.getElementById('search-input');
+    const feedFilter = document.getElementById('feed-filter');
+    const paginationEl = document.getElementById('pagination');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pageInfo = document.getElementById('page-info');
 
     let articles = [];
     const selectedArticleIds = new Set();
+
+    let currentPage = 1;
+    const pageSize = 9;
+    let searchQuery = '';
+    let selectedFeed = '';
 
     async function fetchFeeds() {
         try {
@@ -15,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             articles = data.articles;
+            populateFilters();
             renderArticles();
         } catch (err) {
             showError('Could not load feeds. ' + err.message);
@@ -23,17 +35,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function populateFilters() {
+        const feeds = new Set();
+        articles.forEach(article => {
+            if (article.feedTitle) {
+                feeds.add(article.feedTitle);
+            }
+        });
+        feedFilter.innerHTML = '<option value="">All Publications</option>';
+        Array.from(feeds).sort().forEach(feed => {
+            const option = document.createElement('option');
+            option.value = feed;
+            option.textContent = feed;
+            feedFilter.appendChild(option);
+        });
+    }
+
+    function getFilteredArticles() {
+        return articles.filter(article => {
+            const matchesSearch = searchQuery === '' ||
+                (article.title && article.title.toLowerCase().includes(searchQuery)) ||
+                (article.contentSnippet && article.contentSnippet.toLowerCase().includes(searchQuery));
+            const matchesFeed = selectedFeed === '' || article.feedTitle === selectedFeed;
+            return matchesSearch && matchesFeed;
+        });
+    }
+
     function renderArticles() {
         articlesGrid.innerHTML = '';
-        if (articles.length === 0) {
+        const filtered = getFilteredArticles();
+        const totalItems = filtered.length;
+        const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        if (totalItems === 0) {
             articlesGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary);">No articles found.</div>';
+            paginationEl.classList.add('hidden');
             return;
         }
 
-        articles.forEach(article => {
+        paginationEl.classList.remove('hidden');
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const pageArticles = filtered.slice(startIndex, endIndex);
+
+        pageArticles.forEach(article => {
             const card = document.createElement('div');
             card.className = 'article-card';
             card.dataset.id = article.id;
+            if (selectedArticleIds.has(article.id)) {
+                card.classList.add('selected');
+            }
 
             const date = new Date(article.pubDate).toLocaleDateString();
 
@@ -138,6 +197,34 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(err.message);
             downloadBtn.disabled = false;
             downloadBtn.textContent = originalText;
+        }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase().trim();
+        currentPage = 1;
+        renderArticles();
+    });
+
+    feedFilter.addEventListener('change', (e) => {
+        selectedFeed = e.target.value;
+        currentPage = 1;
+        renderArticles();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderArticles();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const filtered = getFilteredArticles();
+        const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderArticles();
         }
     });
 

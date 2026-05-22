@@ -97,7 +97,7 @@ const fetchAllFeeds = async () => {
 };
 
 fetchAllFeeds();
-setInterval(fetchAllFeeds, 24 * 60 * 60 * 1000);
+setInterval(fetchAllFeeds, 60 * 60 * 1000);
 
 app.get('/api/feeds', (req, res) => {
     try {

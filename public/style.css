@@ -184,3 +184,63 @@ main {
     accent-color: var(--success-color);
     cursor: pointer;
 }
+
+.controls-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.controls-bar input, .controls-bar select {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    flex: 1;
+    min-width: 200px;
+    outline: none;
+}
+
+.controls-bar input:focus, .controls-bar select:focus {
+    border-color: var(--accent-color);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 3rem;
+}
+
+.secondary-btn {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+    font-family: inherit;
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background-color: var(--border-color);
+    transform: translateY(-1px);
+}
+
+.secondary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#page-info {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}

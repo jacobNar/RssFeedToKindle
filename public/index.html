@@ -16,9 +16,22 @@
     </header>
 
     <main>
+        <div class="controls-bar">
+            <input type="text" id="search-input" placeholder="Search articles...">
+            <select id="feed-filter">
+                <option value="">All Publications</option>
+            </select>
+        </div>
+
         <div id="loading" class="loading">Loading feeds...</div>
         <div id="error" class="error hidden"></div>
         <div id="articles-grid" class="articles-grid"></div>
+
+        <div id="pagination" class="pagination hidden">
+            <button id="prev-btn" class="secondary-btn" disabled>Previous</button>
+            <span id="page-info">Page 1 of 1</span>
+            <button id="next-btn" class="secondary-btn" disabled>Next</button>
+        </div>
     </main>
 
     <script src="app.js"></script>
