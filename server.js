@@ -184,7 +184,64 @@ app.post('/api/send', async (req, res) => {
     }
 });
 
+app.post('/api/send-link', async (req, res) => {
+    try {
+        let { url } = req.body;
+        if (!url) {
+            return res.status(400).json({ error: 'No URL provided' });
+        }
+
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+
+        const toEmails = process.env.TO_EMAILS ? process.env.TO_EMAILS.split(',').map(e => e.trim()) : [];
+        if (toEmails.length === 0) {
+            return res.status(400).json({ error: 'No Kindle emails configured in .env' });
+        }
+
+        const html = await htmlService.downloadHTML(url);
+        let title = 'Web Article';
+        const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].trim()
+                .replace(/\s+/g, ' ')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'");
+        }
+
+        const article = {
+            title: title,
+            link: url,
+            author: new URL(url).hostname || 'Web Article',
+            feedTitle: 'Direct Link'
+        };
+
+        const epubBuffer = await epubService.generateFromHtml(article, html);
+        const safeTitle = title.replace(/[\\/:*?"<>|]/g, '').trim() || 'web_article';
+        const filesToSend = [{
+            title: title,
+            filename: `${safeTitle}.epub`,
+            content: epubBuffer
+        }];
+
+        const sendEmail = process.env.SEND_EMAIL === 'true';
+        if (sendEmail) {
+            await emailService.sendFiles(toEmails, filesToSend, `Direct Link: ${title}`);
+        }
+
+        res.json({ message: 'Successfully sent link to Kindle!' });
+    } catch (error) {
+        Logger.error('Error in /api/send-link', error);
+        res.status(500).json({ error: 'Failed to process and send link: ' + error.message });
+    }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
     Logger.info(`Server started on http://0.0.0.0:${PORT}`);
 });
+
 

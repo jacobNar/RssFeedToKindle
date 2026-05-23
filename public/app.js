@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const pageInfo = document.getElementById('page-info');
+    const customUrlInput = document.getElementById('custom-url-input');
+    const sendUrlBtn = document.getElementById('send-url-btn');
 
     let articles = [];
     const selectedArticleIds = new Set();
@@ -225,6 +227,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPage < totalPages) {
             currentPage++;
             renderArticles();
+        }
+    });
+
+    sendUrlBtn.addEventListener('click', async () => {
+        const url = customUrlInput.value.trim();
+        if (!url) {
+            showError('Please enter a valid URL');
+            return;
+        }
+
+        const originalText = sendUrlBtn.textContent;
+        sendUrlBtn.textContent = 'Sending...';
+        sendUrlBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/send-link', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send link');
+            }
+
+            alert('Successfully sent link to Kindle!');
+            customUrlInput.value = '';
+        } catch (err) {
+            showError(err.message);
+        } finally {
+            sendUrlBtn.disabled = false;
+            sendUrlBtn.textContent = originalText;
         }
     });
 
